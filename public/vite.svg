@@ -1,0 +1,140 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 128 128"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">赞妮风格·护甲徽章</title>
+  <desc id="desc">
+    代表赞妮的盾牌与臂铠握钥徽章：银灰护甲质感，冷金属高光，克制的暖光点缀
+  </desc>
+
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="bgG" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f1113" />
+      <stop offset="100%" stop-color="#161618" />
+    </linearGradient>
+
+    <!-- 金属冷光 -->
+    <linearGradient id="metalG" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#eef0f3" />
+      <stop offset="60%" stop-color="#d9dee4" />
+      <stop offset="100%" stop-color="#c7ccd1" />
+    </linearGradient>
+
+    <!-- 细微高光（线性）-->
+    <linearGradient id="edgeG" x1="0" x2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop
+        offset="100%"
+        stop-color="#cfd6dc"
+        stop-opacity="0.35"
+      />
+    </linearGradient>
+
+    <!-- 极弱暖点缀 -->
+    <linearGradient id="emberG" x1="0" x2="1">
+      <stop offset="0%" stop-color="#fff6eb" stop-opacity="0.9" />
+      <stop
+        offset="100%"
+        stop-color="#ffd59a"
+        stop-opacity="0.6"
+      />
+    </linearGradient>
+
+    <!-- 轻投影 -->
+    <filter id="ds" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow
+        dx="0"
+        dy="4"
+        stdDeviation="6"
+        flood-color="#000"
+        flood-opacity="0.4"
+      />
+    </filter>
+
+    <!-- 小钥匙符号（复用） -->
+    <symbol id="key" viewBox="0 0 24 24">
+      <circle cx="5" cy="6" r="3" fill="currentColor" />
+      <rect
+        x="8"
+        y="5.2"
+        width="8.4"
+        height="2"
+        rx="0.8"
+        fill="currentColor"
+      />
+      <rect
+        x="15.8"
+        y="6.6"
+        width="1.6"
+        height="1.6"
+        fill="currentColor"
+      />
+      <rect
+        x="17.6"
+        y="6.6"
+        width="1.6"
+        height="1.6"
+        fill="currentColor"
+      />
+    </symbol>
+
+    <!-- 护甲切割蒙版（做为装饰线条） -->
+    <mask id="shieldMask">
+      <rect x="0" y="0" width="128" height="128" fill="white" />
+      <!-- 一个偏透明的剪影用作负空间（可保持图形清晰） -->
+      <path
+        d="M64 20 L100 36 L100 64 C84 94 64 104 64 104 C64 104 44 94 28 64 L28 36 Z"
+        fill="black"
+      />
+    </mask>
+  </defs>
+
+  <!-- 背景圆角块 -->
+  <rect
+    width="128"
+    height="128"
+    rx="18"
+    ry="18"
+    fill="url(#bgG)"
+  />
+
+  <!-- 轻微顶部金属光 -->
+  <ellipse
+    cx="64"
+    cy="18"
+    rx="36"
+    ry="8"
+    fill="rgba(230,234,238,0.03)"
+  />
+
+  <!-- 盾牌主体（带轻微投影） -->
+  <g filter="url(#ds)">
+    <path
+      d="M64 20 L100 36 L100 64 C84 94 64 104 64 104 C64 104 44 94 28 64 L28 36 Z"
+      fill="url(#metalG)"
+      stroke="rgba(0,0,0,0.28)"
+      stroke-width="1.2"
+    />
+  </g>
+
+  <!-- 盾牌内侧细线（表现护甲分段） -->
+  <path
+    d="M64 28 L92 40 L92 64 C80 86 64 94 64 94 C64 94 48 86 36 64 L36 40 Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.06)"
+    stroke-width="1.0"
+    stroke-linecap="round"
+  />
+
+  <!-- 底部平衡影 -->
+  <ellipse
+    cx="64"
+    cy="116"
+    rx="28"
+    ry="4.0"
+    fill="rgba(0,0,0,0.28)"
+  />
+</svg>
