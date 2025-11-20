@@ -29,8 +29,6 @@
             <div class="spinner" />
             <div class="loading-text">加载中…</div>
           </div>
-
-        
         </div>
 
         <div class="controls">
@@ -192,21 +190,7 @@
           </ul>
         </div>
 
-        <!-- 移动端底部迷你控制（当列表折叠时显示） -->
-        <div v-if="isMobile" class="mobile-mini" aria-hidden="false">
-          <div class="mini-left">
-            <div class="mini-dot"></div>
-            <div class="mini-title">{{ current?.title || "未选择曲目" }}</div>
-          </div>
-          <div class="mini-right">
-            <button class="icon" @click="prev" aria-label="上一首">⟵</button>
-            <button class="play" @click="togglePlay" :aria-pressed="playing">
-              <span v-if="!playing">▶</span>
-              <span v-else>▌▌</span>
-            </button>
-            <button class="icon" @click="next" aria-label="下一首">⟶</button>
-          </div>
-        </div>
+      
       </div>
     </div>
 
@@ -219,6 +203,16 @@
       @error="onAudioError"
       preload="metadata"
     ></audio>
+
+    <div class="floating-chibis">
+      <img
+        v-for="(pet, i) in chibiList"
+        :key="i"
+        :src="pet.src"
+        :style="{ top: pet.top + 'px', left: pet.left + 'px' }"
+        class="chibi-img"
+      />
+    </div>
   </section>
 </template>
 
@@ -232,7 +226,7 @@ import {
   nextTick,
 } from "vue";
 import { getMusicList, getMusicUrl } from "@/api/modules/music"; // 请确认路径
-
+import gsap from "gsap";
 type MusicItem = {
   name: string;
   title: string;
@@ -569,7 +563,12 @@ function formatTime(sec?: number) {
   const m = Math.floor(sec / 60);
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
-
+interface Chibi {
+  src: string;
+  top: number;
+  left: number;
+}
+const chibiList = ref<Chibi[]>([]);
 // 生命周期：绑定 audio ref、初始化列表和 videoSrc
 onMounted(async () => {
   audioRef.value =
@@ -588,6 +587,107 @@ onMounted(async () => {
   await fetchList();
 
   window.addEventListener("keydown", globalKeydown);
+
+  const total = 8;
+  let pickCount = 3; // 每次抽取 3 张
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // 如果已知单张小人图片的宽高，可避免超出边界；
+  // 假设小人图片宽 100px、高 100px，按需替换：
+  const imgWidth = 100;
+  const imgHeight = 100;
+
+  // 2. Fisher–Yates 洗牌函数
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // 3. 随机选出 3 个编号
+  if (isMobile.value) {
+    pickCount = 1;
+  }
+  const nums = shuffle(Array.from({ length: total }, (_, k) => k + 1));
+  const picks = nums.slice(0, pickCount);
+
+  // 4. 生成随机位置并填充 chibiList
+  chibiList.value = []; // 先清空
+  picks.forEach((i) => {
+    chibiList.value.push({
+      src: `/QImages/1 (${i}).png`,
+      left: Math.random() * (vw - imgWidth), // 保证不超出左右边界
+      top: Math.random() * (vh - imgHeight), // 保证不超出上下边界
+    });
+  });
+
+  // 2. 等 img 渲染到 DOM
+  await nextTick();
+
+  // 3. 给每个小人绑定 GSAP 动画
+  const imgs = document.querySelectorAll<HTMLImageElement>(".chibi-img");
+  imgs.forEach((img, index) => {
+    const padding = 200; // 边缘预留空间
+    // ✅ 初始出场动画（闪现）
+    gsap.fromTo(
+      img,
+      { opacity: 0, scale: 0.5 },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        ease: "back.out(2)",
+        delay: 0.2 * index,
+      }
+    );
+
+    // ✅ 鼠标靠近闪避
+    img.addEventListener("mouseenter", () => {
+      gsap.killTweensOf(img);
+
+      gsap.to(img, {
+        x: "+=" + ((Math.random() - 0.5) * 400).toFixed(0),
+        y: "+=" + ((Math.random() - 0.5) * 400).toFixed(0),
+        duration: 1.2,
+        ease: "back.out(2)",
+        onComplete: () => {
+          // 闪避完成后，再重新启用动画
+          animate(img);
+        },
+      });
+    });
+
+    const animate = (img: HTMLImageElement) => {
+      let { x, y } = img.getBoundingClientRect();
+      let deltaX = (Math.random() - 0.5) * 200;
+      let deltaY = (Math.random() - 0.5) * 200;
+
+      // 预测一下偏移后的位置
+      let nextX = x + deltaX;
+      let nextY = y + deltaY;
+
+      // 校正：防漂出左、右、上、下边界
+      if (nextX < padding) deltaX = padding - x;
+      if (nextX + img.width > window.innerWidth - padding)
+        deltaX = window.innerWidth - padding - (x + img.width);
+      if (nextY < padding) deltaY = padding - y;
+      if (nextY + img.height > window.innerHeight - padding)
+        deltaY = window.innerHeight - padding - (y + img.height);
+
+      gsap.to(img, {
+        x: `+=${deltaX.toFixed(0)}`,
+        y: `+=${deltaY.toFixed(0)}`,
+        rotation: `+=${((Math.random() - 0.5) * 60).toFixed(0)}`,
+        duration: 2 + Math.random() * 2,
+        ease: "power1.inOut",
+        onComplete: () => animate(img),
+      });
+    };
+    animate(img);
+  });
 });
 
 onBeforeUnmount(() => {
@@ -615,12 +715,25 @@ function globalKeydown(e: KeyboardEvent) {
 $bg-dark: #0f1113;
 $bg-deep: #17181a;
 $sea: #d9dfe6;
-$violet: #FEFFFA;
+$violet: #fefffa;
 $blood: #ff6b85;
 $text: #eae9ee;
 $glass: rgba(95, 224, 255, 0.04);
 $shadow: rgba(1, 2, 6, 0.6);
-
+.floating-chibis {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  .chibi-img {
+    position: absolute;
+    width: 80px;
+    user-select: none;
+    transform-origin: center center;
+    pointer-events: auto;
+    z-index: 10;
+  }
+}
 /* 整体 */
 .cantarella-player {
   padding: 20px;
@@ -751,8 +864,6 @@ $shadow: rgba(1, 2, 6, 0.6);
     transform: rotate(360deg);
   }
 }
-
-
 
 /* 控件 */
 .controls {
@@ -1012,10 +1123,7 @@ $shadow: rgba(1, 2, 6, 0.6);
   text-align: right;
 }
 
-/* 移动端迷你控制 */
-.mobile-mini {
-  display: none;
-}
+
 @media (max-width: 920px) {
   .toggle-list-text {
     display: block;
@@ -1035,19 +1143,7 @@ $shadow: rgba(1, 2, 6, 0.6);
     max-height: none;
     order: 3;
   }
-  .mobile-mini {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 10px;
-    margin-top: 8px;
-    background: linear-gradient(
-      180deg,
-      rgba(6, 6, 8, 0.14),
-      rgba(4, 4, 6, 0.06)
-    );
-  }
+
   .mini-left {
     display: flex;
     gap: 8px;
